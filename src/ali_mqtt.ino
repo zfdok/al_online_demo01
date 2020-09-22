@@ -134,6 +134,7 @@ void mqttPublish_ntpTimeRequest()
       while (!timeNTPdone)
       {
         mqttClient.loop();
+        //做跳出
       }
     }
     else

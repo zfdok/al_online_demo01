@@ -9,6 +9,8 @@
 #include "PubSubClient.h"
 #include "aliyun_mqtt.h"
 #include "ArduinoJson.h"
+#include "SPIFFS.h"
+#include "EEPROM.h"
 
 /*-------------------------------SIM800L 硬件定义----------------------------------*/
 #define MODEM_RST 5       //SIM800L复位引脚接在GPIO5
@@ -28,15 +30,17 @@ float currentHumi;
 bool tempAndHumi_Ready;
 bool timeNTPdone;
 
-//休眠相关
-#define sleeptimeArg 20000000
+/*-------------------------------公共变量,参数定义-------------------------------------*/
+String originSet = "{\"sleeptime\":20000000,\"end\":0}";
 
 //以下参数需要休眠RTC记忆
 RTC_DATA_ATTR time_t sleeptime;           //休眠时间
+RTC_DATA_ATTR time_t reduce_sleeptime;    //缩减休眠时间
 RTC_DATA_ATTR time_t lastNTP_timestamp;   //上次对时的时间戳
 RTC_DATA_ATTR int postMsgId = 0;          //记录已经post了多少条
 RTC_DATA_ATTR float locationE, locationN; //地理位置,经度纬度
 RTC_DATA_ATTR tm *timeNow;                //当前时间
+RTC_DATA_ATTR int measureing_flag;        //是否在测量中
 
 /*-------------------------------初始化相关init.ino-------------------------------------*/
 void hardware_init();
@@ -64,3 +68,7 @@ void mqttPublish_ntpTimeRequest();
 /*-------------------------------休眠服务相关al_sleep.ino---------------------*/
 void go_sleep();
 #endif // CONFIG_H
+
+/*----------------------------------------------------*/
+void eeprom_config_init();
+void eeprom_config_set_sleeptime(time_t time1);
