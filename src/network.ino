@@ -42,6 +42,8 @@ void modemToGPRS()
     delay(10000);
   }
   SerialMon.println(" OK");
+  SerialMon.println(" signalQuality:");
+  Serial.println(modem.getSignalQuality());
 }
 /*-------------------------------获取位置信息-------------------------------------*/
 void getLBSLocation()
@@ -63,6 +65,4 @@ void getLBSLocation()
     }
   }
 }
-
-
 

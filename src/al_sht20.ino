@@ -3,10 +3,6 @@
 *
 *---------------------------------------------------------*/
 #include "config.h"
-extern float currentTemp;
-extern float currentHumi;
-extern bool tempAndHumi_Ready;
-extern int postMsgId;
 void sht20getTempAndHumi()
 {
   float _currentTemp = sht20.temperature();

@@ -1,15 +1,29 @@
 #include "config.h"
+int rollback = 0;
 void setup()
 {
   hardware_init(); //硬件初始化
-  software_init(); //软件初始化
-  delay(5000);
-  /*************clean the eeprom and reset to first start***********
-  // EEPROM.write(1,0);
-  // EEPROM.commit();
-  // Serial.println("OK");
-  *****************************************************************/
-  eeprom_config_init();
+  delay(2000);
+  if (rollback)
+  {
+    /*************clean the eeprom and reset to first start***********/
+    Serial.println("clean EEPROM");
+    EEPROM.write(1, 0);
+    EEPROM.commit();
+    Serial.println("OK");
+    ESP.deepSleep(300000000);
+  }
+  else
+  {
+    get_eeprom_firstBootFlag(); //获取EEPROM第1位,判断是否是初次开机
+    alFFS_init();               //初始化FFS
+    eeprom_config_init();       //初始化EEPROM
+    software_init();            //软件初始化
+  }
+}
+
+void loop()
+{
   if (measureing_flag == 1)
   {
     setupModem();          //SIM800L物理开机
@@ -23,8 +37,4 @@ void setup()
     //进入睡眠
     go_sleep();
   }
-}
-
-void loop()
-{
 }

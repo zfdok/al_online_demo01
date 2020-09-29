@@ -10,6 +10,7 @@ void hardware_init()
   SerialAT.begin(115200, SERIAL_8N1, MODEM_RX, MODEM_TX); //初始化AT串口
   sht20.begin();
   EEPROM.begin(4096);
+  SPIFFS.begin();
 }
 
 void software_init()

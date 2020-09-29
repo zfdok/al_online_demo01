@@ -29,6 +29,8 @@ float currentTemp;
 float currentHumi;
 bool tempAndHumi_Ready;
 bool timeNTPdone;
+//判断是否第一次启动
+bool firstBootFlag;
 
 /*-------------------------------公共变量,参数定义-------------------------------------*/
 String originSet = "{\"sleeptime\":20000000,\"end\":0}";
@@ -67,8 +69,12 @@ void mqttPublish_ntpTimeRequest();
 
 /*-------------------------------休眠服务相关al_sleep.ino---------------------*/
 void go_sleep();
-#endif // CONFIG_H
 
-/*----------------------------------------------------*/
+/*--------------------------------eeprom相关函数--------------------*/
+void get_eeprom_firstBootFlag();
 void eeprom_config_init();
 void eeprom_config_set_sleeptime(time_t time1);
+/*********************************SPIFFS相关函数 al_FFS.ino**********/
+void alFFS_init();
+
+#endif // CONFIG_H

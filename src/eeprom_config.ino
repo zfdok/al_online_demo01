@@ -18,15 +18,21 @@
  * 1                        1                   firstLoad_flag
  * 2                        8                   sleeptime
  * ************************************************************/
-void eeprom_config_init()
+void get_eeprom_firstBootFlag()
 {
   Serial.printf("EEPROM 1: %d \r\n", EEPROM.read(1));
-  if (EEPROM.read(1) != 1)
+  firstBootFlag = EEPROM.read(1) == 1 ? false : true;
+}
+
+void eeprom_config_init()
+{
+  if (firstBootFlag)
   {
     Serial.println("this is the first load,begin to write default:");
     EEPROM.write(1, 1);
     EEPROM.writeInt(2, 20000000);
     EEPROM.commit();
+    firstBootFlag = false;
   }
   else
   {
