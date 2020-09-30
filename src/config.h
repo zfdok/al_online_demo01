@@ -7,8 +7,6 @@
 //引入TinyGSM库. 在引入之前要定义好TINY_GSM_MODEM_SIM800,让它知道我们用的模块型号
 #include <TinyGsmClient.h>
 #include "PubSubClient.h"
-#include "aliyun_mqtt.h"
-#include "ArduinoJson.h"
 #include "SPIFFS.h"
 #include "EEPROM.h"
 
@@ -23,6 +21,10 @@
 #define SerialMon Serial //调试串口为UART0
 #define SerialAT Serial1 //AT串口为UART1
 
+/*-------------------------------显示/按键相关定义-------------------------------------*/
+#define OLED_OFF 0
+int oledState = OLED_OFF;
+
 /*-------------------------------公共变量,参数定义-------------------------------------*/
 //温湿度采集相关
 float currentTemp;
@@ -36,13 +38,14 @@ bool firstBootFlag;
 String originSet = "{\"sleeptime\":20000000,\"end\":0}";
 
 //以下参数需要休眠RTC记忆
-RTC_DATA_ATTR time_t sleeptime;           //休眠时间
-RTC_DATA_ATTR time_t reduce_sleeptime;    //缩减休眠时间
-RTC_DATA_ATTR time_t lastNTP_timestamp;   //上次对时的时间戳
-RTC_DATA_ATTR int postMsgId = 0;          //记录已经post了多少条
-RTC_DATA_ATTR float locationE, locationN; //地理位置,经度纬度
-RTC_DATA_ATTR tm *timeNow;                //当前时间
-RTC_DATA_ATTR int measureing_flag;        //是否在测量中
+RTC_DATA_ATTR time_t sleeptime;                      //休眠时间
+RTC_DATA_ATTR time_t reduce_sleeptime;               //缩减休眠时间
+RTC_DATA_ATTR time_t lastNTP_timestamp;              //上次对时的时间戳
+RTC_DATA_ATTR int postMsgId = 0;                     //记录已经post了多少条
+RTC_DATA_ATTR float locationE, locationN, locationA; //地理位置,经度纬度
+RTC_DATA_ATTR int timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s;
+RTC_DATA_ATTR int timeLastNTP_Y, timeLastNTP_M, timeLastNTP_D, timeLastNTP_h, timeLastNTP_m, timeLastNTP_s;
+RTC_DATA_ATTR int measureing_flag; //是否在测量中
 
 /*-------------------------------初始化相关init.ino-------------------------------------*/
 void hardware_init();
@@ -53,20 +56,36 @@ uFire_SHT20 sht20;
 void sht20getTempAndHumi();
 
 /*-------------------------------SIM800相关network.ino---------------------*/
+// 创建一个关联到SerialAT的SIM800L模型
 TinyGsm modem(SerialAT);
+// 创建一个GSM型的网络客户端
 TinyGsmClient gsmclient(modem);
+PubSubClient client(gsmclient);
 
 void setupModem();
 void modemToGPRS();
 void getLBSLocation();
-/*-------------------------------mqtt服务相关ali_mqtt.ino---------------------*/
-PubSubClient mqttClient(gsmclient);
+// /*-------------------------------ali_mqtt服务相关ali_mqtt.ino---------------------*/
+// void ali_mqtt_connect();
+// void ali_callback(char *topic, byte *payload, unsigned int length);
+// void ali_sendTemp_Humi_LBS();
+/*-------------------------------onenet_mqtts服务相关onenet_mqtts.ino---------------------*/
 
-void ali_mqtt_connect();
-void callback(char *topic, byte *payload, unsigned int length);
-void sendTemp_Humi_LBS();
-void mqttPublish_ntpTimeRequest();
+/*-------------------------------云平台相关定义-------------------------------------*/
+const char *mqtt_server = "183.230.40.96"; //onenet 的 IP地址
+const int port = 1883;                     //端口号
+#define mqtt_devid "esp_device001"         //设备ID
+#define mqtt_pubid "370098"                //产品ID
+//鉴权信息
+#define mqtt_password "version=2018-10-31&res=products%2F370098%2Fdevices%2Fesp_device001&et=4092512761&method=md5&sign=MUV%2BKFLzv81a4Bw6BDrChQ%3D%3D"
 
+char msgJson[256]; //要发送的json格式的数据
+char dataTemplate[] = "{\"id\":123,\"dp\":{\"temp\":[{\"v\":%.2f}],\"humi\":[{\"v\":%.2f}],\"location\":[{\"v\":{\"lon\":%.2f,\"lat\":%.2f}}]}}";
+
+void onenet_connect();
+void sendTempAndHumi();
+// void onenet_mqtts_connect();
+// void onenet_mqtts_sendTemp_Humi_LBS();
 /*-------------------------------休眠服务相关al_sleep.ino---------------------*/
 void go_sleep();
 

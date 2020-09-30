@@ -49,20 +49,31 @@ void modemToGPRS()
 void getLBSLocation()
 {
   Serial.println("getting LBS...");
-  String locationStr, locationStrX, locationStrY;
-  locationStr = modem.getGsmLocation();
-  if (locationStr.length() > 15)
+  float _locationE = 0, _locationN = 0, _locationA = 0; //地理位置,经度纬度
+  int _timeLastNTP_Y=0, _timeLastNTP_M=0, _timeLastNTP_D=0, _timeLastNTP_h=0, _timeLastNTP_m=0, _timeLastNTP_s=0;
+  modem.getGsmLocation(&_locationE, &_locationN, &_locationA, &_timeLastNTP_Y, &_timeLastNTP_M, &_timeLastNTP_D, &_timeLastNTP_h, &_timeLastNTP_m, &_timeLastNTP_s);
+  if (_locationE > 0.1)
   {
-    int finddou;
-    finddou = locationStr.indexOf(',');
-    locationStrX = locationStr.substring(0, finddou);
-    locationStrY = locationStr.substring(finddou + 1, locationStr.length());
-    Serial.println(locationStr);
-    if (locationStrX.toFloat() > 1)
-    {
-      locationE = locationStrX.toFloat();
-      locationN = locationStrY.toFloat();
-    }
+    locationE = _locationE;
+    locationN = _locationN;
+    locationA = _locationA;
+    timeLastNTP_Y = _timeLastNTP_Y;
+    timeLastNTP_M = _timeLastNTP_M;
+    timeLastNTP_D = _timeLastNTP_D;
+    timeLastNTP_h = _timeLastNTP_h;
+    timeLastNTP_m = _timeLastNTP_m;
+    timeLastNTP_s = _timeLastNTP_s;
+    timeNow_Y = timeLastNTP_Y;
+    timeNow_M = timeLastNTP_M;
+    timeNow_D = timeLastNTP_D;
+    timeNow_h = timeLastNTP_h;
+    timeNow_m = timeLastNTP_m;
+    timeNow_s = timeLastNTP_s;
   }
-}
 
+  Serial.println(locationE);
+  Serial.println(locationN);
+  Serial.println(locationA);
+  Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeLastNTP_Y, timeLastNTP_M, timeLastNTP_D, timeLastNTP_h, timeLastNTP_m, timeLastNTP_s);
+  Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s);
+}
