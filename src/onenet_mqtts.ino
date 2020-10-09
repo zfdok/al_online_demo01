@@ -16,7 +16,12 @@ void sendTempAndHumi()
     snprintf(msgJson, 256, dataTemplate, currentTemp, currentHumi, locationE, locationN); //将模拟温湿度数据套入dataTemplate模板中, 生成的字符串传给msgJson
     Serial.print("public the data:");
     Serial.println(msgJson);
-    client.publish("$sys/370098/esp_device001/dp/post/json", (uint8_t *)msgJson, strlen(msgJson));
+    char publicTopic[75] ; 
+    char topicTemplate[] = "$sys/%s/%s/dp/post/json"; //信息模板
+    snprintf(publicTopic,75,topicTemplate,mqtt_pubid,mqtt_devid);
+    Serial.println("publicTopic");
+    Serial.println(publicTopic);
+    client.publish(publicTopic, (uint8_t *)msgJson, strlen(msgJson));
     //发送数据到主题
   }
 }

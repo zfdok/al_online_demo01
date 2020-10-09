@@ -7,7 +7,7 @@ void setup()
   delay(2000);
   if (rollback)
   {
-    /*************clean the eeprom and reset to first start***********/
+    /*************如果rollback置1, 会恢复出厂设置,数据全清***********/
     Serial.println("clean EEPROM");
     EEPROM.write(1, 0);
     EEPROM.commit();

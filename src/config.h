@@ -25,6 +25,18 @@
 #define OLED_OFF 0
 int oledState = OLED_OFF;
 
+/*-------------------------------出厂设置定义-------------------------------------*/
+#define FIRST_SLEEPTIME 20000000           //休眠时间
+#define FIRST_TEMP_LIMIT_ENABLE 0          //出厂温度上下限失能
+#define FIRST_TEMP_UPPER_LIMIT 50.0        //出厂温度上限
+#define FIRST_TEMP_LOWER_LIMIT -40.0       //出厂温度下限
+const char *mqtt_server = "183.230.40.96"; //onenet 的 IP地址
+const int port = 1883;                     //端口号
+#define mqtt_devid "esp_device001"         //设备ID
+#define mqtt_pubid "370098"                //产品ID
+//鉴权信息
+#define mqtt_password "version=2018-10-31&res=products%2F370098%2Fdevices%2Fesp_device001&et=4092512761&method=md5&sign=MUV%2BKFLzv81a4Bw6BDrChQ%3D%3D"
+
 /*-------------------------------公共变量,参数定义-------------------------------------*/
 //温湿度采集相关
 float currentTemp;
@@ -35,9 +47,10 @@ bool timeNTPdone;
 bool firstBootFlag;
 
 /*-------------------------------公共变量,参数定义-------------------------------------*/
-String originSet = "{\"sleeptime\":20000000,\"end\":0}";
-
 //以下参数需要休眠RTC记忆
+RTC_DATA_ATTR bool tempLimit_enable;                 //温度上下限报警开关
+RTC_DATA_ATTR float tempUpperLimit;                  //温度上限设定
+RTC_DATA_ATTR float tempLowerLimit;                  //温度下限设定
 RTC_DATA_ATTR time_t sleeptime;                      //休眠时间
 RTC_DATA_ATTR time_t reduce_sleeptime;               //缩减休眠时间
 RTC_DATA_ATTR time_t lastNTP_timestamp;              //上次对时的时间戳
@@ -72,16 +85,8 @@ void getLBSLocation();
 /*-------------------------------onenet_mqtts服务相关onenet_mqtts.ino---------------------*/
 
 /*-------------------------------云平台相关定义-------------------------------------*/
-const char *mqtt_server = "183.230.40.96"; //onenet 的 IP地址
-const int port = 1883;                     //端口号
-#define mqtt_devid "esp_device001"         //设备ID
-#define mqtt_pubid "370098"                //产品ID
-//鉴权信息
-#define mqtt_password "version=2018-10-31&res=products%2F370098%2Fdevices%2Fesp_device001&et=4092512761&method=md5&sign=MUV%2BKFLzv81a4Bw6BDrChQ%3D%3D"
-
 char msgJson[256]; //要发送的json格式的数据
 char dataTemplate[] = "{\"id\":123,\"dp\":{\"temp\":[{\"v\":%.2f}],\"humi\":[{\"v\":%.2f}],\"location\":[{\"v\":{\"lon\":%.2f,\"lat\":%.2f}}]}}";
-
 void onenet_connect();
 void sendTempAndHumi();
 // void onenet_mqtts_connect();

@@ -17,6 +17,10 @@
  * ------------------------------------------------------------
  * 1                        1                   firstLoad_flag
  * 2                        8                   sleeptime
+ * 10                       1                   temp Upper/Lower limit enabled
+ * 11                       4                   temp Upper limit
+ * 15                       4                   temp Lower limit
+ * 
  * ************************************************************/
 void get_eeprom_firstBootFlag()
 {
@@ -30,7 +34,10 @@ void eeprom_config_init()
   {
     Serial.println("this is the first load,begin to write default:");
     EEPROM.write(1, 1);
-    EEPROM.writeInt(2, 20000000);
+    EEPROM.writeInt(2, FIRST_SLEEPTIME);
+    EEPROM.write(10, FIRST_TEMP_LIMIT_ENABLE);
+    EEPROM.writeFloat(11, FIRST_TEMP_UPPER_LIMIT);
+    EEPROM.writeFloat(15, FIRST_TEMP_LOWER_LIMIT);
     EEPROM.commit();
     firstBootFlag = false;
   }
@@ -38,7 +45,13 @@ void eeprom_config_init()
   {
     Serial.println("this is not the first load");
     sleeptime = (time_t)EEPROM.readInt(2);
-    Serial.println(sleeptime);
+    Serial.printf("sleeptime:%ld\r\n", sleeptime);
+    tempLimit_enable = EEPROM.read(10) == 0 ? false : true;
+    Serial.printf("sleeptime:%s\r\n", (String)tempLimit_enable);
+    tempUpperLimit = EEPROM.readFloat(11);
+    Serial.printf("tempUpperLimit:%.2f\r\n", tempUpperLimit);
+    tempLowerLimit = EEPROM.readFloat(15);
+    Serial.printf("tempLowerLimit:%.2f\r\n", tempLowerLimit);
   }
 }
 
