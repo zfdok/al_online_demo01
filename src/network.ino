@@ -10,7 +10,6 @@ void setupModem()
 {
   pinMode(MODEM_POWER_ON, OUTPUT); //电源引脚
   pinMode(MODEM_PWRKEY, OUTPUT);   //开关机键引脚
-
   // 先打开SIM800L的电源
   digitalWrite(MODEM_POWER_ON, HIGH);
   //根据手册要求拉下PWRKEY 1秒钟以上 可以开机
@@ -50,7 +49,7 @@ void getLBSLocation()
 {
   Serial.println("getting LBS...");
   float _locationE = 0, _locationN = 0, _locationA = 0; //地理位置,经度纬度
-  int _timeLastNTP_Y=0, _timeLastNTP_M=0, _timeLastNTP_D=0, _timeLastNTP_h=0, _timeLastNTP_m=0, _timeLastNTP_s=0;
+  int _timeLastNTP_Y = 0, _timeLastNTP_M = 0, _timeLastNTP_D = 0, _timeLastNTP_h = 0, _timeLastNTP_m = 0, _timeLastNTP_s = 0;
   modem.getGsmLocation(&_locationE, &_locationN, &_locationA, &_timeLastNTP_Y, &_timeLastNTP_M, &_timeLastNTP_D, &_timeLastNTP_h, &_timeLastNTP_m, &_timeLastNTP_s);
   if (_locationE > 0.1)
   {
@@ -76,4 +75,12 @@ void getLBSLocation()
   Serial.println(locationA);
   Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeLastNTP_Y, timeLastNTP_M, timeLastNTP_D, timeLastNTP_h, timeLastNTP_m, timeLastNTP_s);
   Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s);
+
+  rtc.adjust(DateTime(timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s));
+  DateTime now = rtc.now();
+  now_unixtime = now.unixtime();
+  time_last_async_stamp = millis();
+  Serial.printf("rtc time now: %d-%d-%d %d:%d:%d\r\n", now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
+  EEPROM.writeULong(39, now_unixtime);
+  EEPROM.commit();
 }
