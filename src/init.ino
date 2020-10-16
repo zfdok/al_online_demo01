@@ -22,7 +22,6 @@ void hardware_init()
 void software_init()
 {
   tempAndHumi_Ready = false;
-  reduce_sleeptime = 0;
   Serial.printf("workingState:%d\r\n", workingState);
   Serial.printf("oledState:%d\r\n", oledState);
   loopStartTime = millis();
@@ -38,7 +37,7 @@ void software_init()
   {
     workingState = NOT_WORKING;
     oledState = OLED_ON;
-  }
+  } 
   keyState = NOKEYDOWN;
   screenState = MAIN_TEMP_SCREEN;
   bleState = BLE_OFF;

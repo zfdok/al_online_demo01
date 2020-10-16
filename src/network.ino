@@ -69,7 +69,6 @@ void getLBSLocation()
     timeNow_m = timeLastNTP_m;
     timeNow_s = timeLastNTP_s;
   }
-
   Serial.println(locationE);
   Serial.println(locationN);
   Serial.println(locationA);

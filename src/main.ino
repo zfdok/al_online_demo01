@@ -45,8 +45,7 @@ void setup()
       {
         send_Msg_var_GSM_while_OLED_off();
         delay(1000);
-        esp_sleep_enable_ext0_wakeup(GPIO_NUM_4, LOW);
-        go_sleep();
+        go_sleep_a_while_with_ext0();
       }
     }
   }
@@ -68,8 +67,6 @@ void loop()
 
 void send_Msg_var_GSM_while_OLED_off()
 {
-  key_attach_null();
-  attachInterrupt(KEY1, oledoff_upload_but_click, LOW);
   setupModem();          //SIM800L物理开机
   modemToGPRS();         //modem连接GPRS
   getLBSLocation();      //获取定位信息
@@ -83,8 +80,9 @@ void send_Msg_var_GSM_while_OLED_off()
     client.subscribe(subscribeTopic); //订阅命令下发主题
     sendTempAndHumi();
   }
-  detachInterrupt(KEY1);
-  key_init();
+  alFFS_addRec();
+  alFFS_readRecing();
+  reduce_sleeptime = 0;
 }
 
 void send_Msg_var_GSM_while_OLED_on()
@@ -143,6 +141,9 @@ void send_Msg_var_GSM_while_OLED_on()
       screen_loopEnabled = true;
       screen_On_Start = millis();
       screen_On_now = millis();
+      alFFS_addRec();
+      alFFS_readRecing();
+      reduce_sleeptime = 0;
     }
   }
 }

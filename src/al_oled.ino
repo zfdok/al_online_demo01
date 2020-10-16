@@ -287,13 +287,6 @@ void oled_on_off_switch()
   }
   if (screen_On_now - screen_On_Start > screen_On_last_span + screen_Off_to_sleep_span)
   {
-    if (workingState == WORKING)
-    {
-      esp_sleep_enable_timer_wakeup(sleeptime);
-    }
-    sleep_update_time();
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_4, LOW);
-    Serial.println("start sleep");
-    esp_deep_sleep_start();
+    go_sleep_a_while_with_ext0();
   }
 }

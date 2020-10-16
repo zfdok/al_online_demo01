@@ -14,6 +14,10 @@ void wakeup_init_time()
   sleep_end_time = system_get_time();
   sleep_time_count = sleep_end_time - sleep_start_time;
   Serial.printf("sleep count: %ld second\r\n", sleep_time_count / 1000000);
+  if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0 && workingState == WORKING)
+  {
+    reduce_sleeptime += sleep_time_count;
+  }
 }
 void waking_update_time()
 {

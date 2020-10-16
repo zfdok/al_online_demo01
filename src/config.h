@@ -79,7 +79,7 @@ time_t last_rec_stamp;                 //上次记录时间
 time_t now_rec_stamp;                  //计算现在记录时间
 
 /*-------------------------------出厂设置定义-------------------------------------*/
-#define FACTORY_SLEEPTIME 20000000     //休眠时间
+#define FACTORY_SLEEPTIME 300000000    //休眠时间
 #define FACTORY_TEMP_LIMIT_ENABLE 0    //出厂温度上下限失能
 #define FACTORY_TEMP_UPPER_LIMIT 50.0  //出厂温度上限
 #define FACTORY_TEMP_LOWER_LIMIT -40.0 //出厂温度下限
@@ -103,7 +103,7 @@ float currentHumi;
 bool tempAndHumi_Ready;
 bool timeNTPdone;
 //判断是否第一次启动
-bool firstBootFlag;
+bool firstBootFlag; //第一次启动标志位
 
 #define BLE_ON 1
 #define BLE_OFF 2
@@ -115,7 +115,6 @@ bool firstBootFlag;
 RTC_DATA_ATTR int bleState;       //蓝牙状态机
 RTC_DATA_ATTR int lockState;      //开关箱状态机
 RTC_DATA_ATTR int qualifiedState; //合格状态机
-
 /*-------------------------------公共变量,参数定义-------------------------------------*/
 //以下参数需要休眠RTC记忆
 RTC_DATA_ATTR bool tempLimit_enable;                 //温度上下限报警开关
@@ -130,7 +129,9 @@ RTC_DATA_ATTR int postMsgId = 0;                     //记录已经post了多少
 RTC_DATA_ATTR float locationE, locationN, locationA; //地理位置,经度纬度
 RTC_DATA_ATTR int timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s;
 RTC_DATA_ATTR int timeLastNTP_Y, timeLastNTP_M, timeLastNTP_D, timeLastNTP_h, timeLastNTP_m, timeLastNTP_s;
-
+/*-------------------------------SPIFFS定义-------------------------------------*/
+RTC_DATA_ATTR bool alFFS_thisRec_firstData_flag; //本次记录第一次上传
+RTC_DATA_ATTR char nowREC_filepath[21];          //记录文件的路径
 /*-------------------------------系统时间定义-------------------------------------*/
 RTC_DATA_ATTR uint32_t now_unixtime;
 time_t time_last_async_stamp;
@@ -167,7 +168,7 @@ void sendTempAndHumi();
 // void onenet_mqtts_connect();
 // void onenet_mqtts_sendTemp_Humi_LBS();
 /*-------------------------------休眠服务相关al_sleep.ino---------------------*/
-void go_sleep();
+void go_sleep_a_while_with_ext0();
 
 /*--------------------------------eeprom相关函数--------------------*/
 void get_eeprom_firstBootFlag();
@@ -175,9 +176,9 @@ void eeprom_config_init();
 void eeprom_config_set_sleeptime(time_t time1);
 /*********************************SPIFFS相关函数 al_FFS.ino**********/
 void alFFS_init();
-
-#endif // CONFIG_H
-
+void alFFS_addRec();
+void alFFS_readRecing();
+void alFFS_endRec();
 /*********************************显示屏相关函数 al_oled.ino**********/
 void showWelcome();
 void screen_loop();
@@ -196,3 +197,4 @@ void oledoff_upload_but_click();
 void sleep_update_time();
 void wakeup_init_time();
 void waking_update_time();
+#endif // CONFIG_H

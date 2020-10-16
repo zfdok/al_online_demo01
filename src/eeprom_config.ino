@@ -51,6 +51,8 @@ void eeprom_config_init()
     EEPROM.writeULong(39, 0);
     EEPROM.commit();
     firstBootFlag = false;
+    screen_On_Start = millis();
+    screen_On_now = millis();
   }
   else
   {
@@ -66,7 +68,7 @@ void eeprom_config_init()
     rtc.adjust(DateTime(now_unixtime));
     Serial.printf("wakeup at unadjust: %d:%d:%d\r\n", rtc.now().hour(), rtc.now().minute(), rtc.now().second());
     //处理时间
-    rtc.adjust(DateTime(now_unixtime+sleep_time_count/1000000));
+    rtc.adjust(DateTime(now_unixtime + sleep_time_count / 1000000));
     Serial.printf("wakeup at : %d:%d:%d\r\n", rtc.now().hour(), rtc.now().minute(), rtc.now().second());
     Serial.printf("time now: %d-%d-%d %d:%d\r\n", rtc.now().year(), rtc.now().month(), rtc.now().day(), rtc.now().hour(), rtc.now().minute());
     Serial.println(now_unixtime);
