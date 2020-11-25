@@ -10,27 +10,28 @@
 #include "PubSubClient.h"
 #include "SPIFFS.h"
 #include "EEPROM.h"
-#include "SH1106Wire.h"
+#include "SSD1306Wire.h"
 #include "images.h"
 #include "OneButton.h"
 #include "RTClib.h"
 
 RTC_Millis rtc;
 /*-------------------------------SIM800L 硬件定义----------------------------------*/
-#define MODEM_RST 5       //SIM800L复位引脚接在GPIO5
-#define MODEM_PWRKEY 4    //SIM800L开关机引脚接在GPIO4
-#define MODEM_POWER_ON 23 //SIM800L电源引脚接在GPIO23
+#define MODEM_RST 25      //SIM800L复位引脚接在GPIO5
+#define MODEM_PWRKEY 35    //SIM800L开关机引脚接在GPIO4
+#define MODEM_POWER_ON 14 //SIM800L电源引脚接在GPIO23
 #define MODEM_TX 27       //SIM800L串口TX引脚接在GPIO27
 #define MODEM_RX 26       //SIM800L串口RX引脚接在GPIO26
 
 /*-------------------------------其他硬件定义-------------------------------------*/
-#define SerialMon Serial //调试串口为UART0
-#define SerialAT Serial1 //AT串口为UART1
-#define KEY1 4           //按键1对应引脚
+#define SerialMon Serial      //调试串口为UART0
+#define SerialAT Serial1      //AT串口为UART1
+#define KEY1 2                //按键1对应引脚
+#define WEAKUPKEY1 GPIO_NUM_2 //按键1对应引脚
 
 /*-------------------------------显示/按键相关定义-------------------------------------*/
 OneButton button(KEY1, true);
-SH1106Wire display(0x3c, 21, 22);
+SSD1306Wire display(0x3c, 21, 22);
 //state of OLED
 #define OLED_ON 1
 #define OLED_OFF 0

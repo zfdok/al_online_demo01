@@ -33,6 +33,8 @@ void software_init()
   screen_Off_to_sleep_span = 3000;
   screen_On_Start = millis();
   screen_On_now = millis();
+  Serial.print("esp_sleep_get_wakeup_cause()");
+  Serial.println(esp_sleep_get_wakeup_cause());
   if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_UNDEFINED) //如果是系统复位唤醒的, 则停止工作, 亮屏
   {
     workingState = NOT_WORKING;

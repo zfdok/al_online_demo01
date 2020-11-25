@@ -25,6 +25,7 @@ void setup()
     EEPROM.commit();
     Serial.println("OK");
     ESP.deepSleep(300000000);
+    modem.sleepEnable();
   }
   else
   {
