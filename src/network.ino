@@ -69,15 +69,13 @@ void getLBSLocation()
     timeNow_m = timeLastNTP_m;
     timeNow_s = timeLastNTP_s;
   }
-  Serial.println(locationE);
-  Serial.println(locationN);
-  Serial.println(locationA);
   Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeLastNTP_Y, timeLastNTP_M, timeLastNTP_D, timeLastNTP_h, timeLastNTP_m, timeLastNTP_s);
   Serial.printf("%d-%d-%d %d:%d:%d\r\n", timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s);
 
   rtc.adjust(DateTime(timeNow_Y, timeNow_M, timeNow_D, timeNow_h, timeNow_m, timeNow_s));
   DateTime now = rtc.now();
   now_unixtime = now.unixtime();
+  // now_unixtime64 = now_unixtime;
   time_last_async_stamp = millis();
   Serial.printf("rtc time now: %d-%d-%d %d:%d:%d\r\n", now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
   EEPROM.writeULong(39, now_unixtime);

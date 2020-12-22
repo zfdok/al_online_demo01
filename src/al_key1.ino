@@ -98,6 +98,7 @@ void key_loop()
         screen_loopEnabled = false;
         screenState = REC_START_SCREEN;
         workingState = WORKING;
+        current_rec_State = START_RECING;
         alFFS_thisRec_firstData_flag = true;
         last_rec_stamp = millis() - sleeptime / 1000 + 2000;
         now_rec_stamp = millis();
@@ -109,6 +110,7 @@ void key_loop()
         screen_loopEnabled = false;
         screenState = REC_STOP_SCREEN;
         workingState = NOT_WORKING;
+        current_rec_State = END_RECING;
         alFFS_endRec();
         Serial.println("workingState = NOT_WORKING;");
         keyScreen_Start = millis();

@@ -10,28 +10,28 @@
 #include "PubSubClient.h"
 #include "SPIFFS.h"
 #include "EEPROM.h"
-#include "SSD1306Wire.h"
+#include "SH1106Wire.h"
 #include "images.h"
 #include "OneButton.h"
 #include "RTClib.h"
 
 RTC_Millis rtc;
 /*-------------------------------SIM800L 硬件定义----------------------------------*/
-#define MODEM_RST 25      //SIM800L复位引脚接在GPIO5
-#define MODEM_PWRKEY 35    //SIM800L开关机引脚接在GPIO4
-#define MODEM_POWER_ON 14 //SIM800L电源引脚接在GPIO23
+#define MODEM_RST 5      //SIM800L复位引脚接在GPIO5
+#define MODEM_PWRKEY 4   //SIM800L开关机引脚接在GPIO4
+#define MODEM_POWER_ON 23 //SIM800L电源引脚接在GPIO23
 #define MODEM_TX 27       //SIM800L串口TX引脚接在GPIO27
 #define MODEM_RX 26       //SIM800L串口RX引脚接在GPIO26
 
 /*-------------------------------其他硬件定义-------------------------------------*/
 #define SerialMon Serial      //调试串口为UART0
 #define SerialAT Serial1      //AT串口为UART1
-#define KEY1 2                //按键1对应引脚
-#define WEAKUPKEY1 GPIO_NUM_2 //按键1对应引脚
+#define KEY1 4                //按键1对应引脚
+#define WEAKUPKEY1 GPIO_NUM_4 //按键1对应引脚
 
 /*-------------------------------显示/按键相关定义-------------------------------------*/
 OneButton button(KEY1, true);
-SSD1306Wire display(0x3c, 21, 22);
+SH1106Wire display(0x3c, 21, 22);
 //state of OLED
 #define OLED_ON 1
 #define OLED_OFF 0
@@ -57,6 +57,11 @@ SSD1306Wire display(0x3c, 21, 22);
 #define LONGPRESS_START 3
 #define LONGPRESS_END 4
 #define LONGPRESS_DURRING 5
+//state of rec_State
+#define START_RECING 0
+#define END_RECING 1
+#define KEEP_RECING 2
+
 TaskHandle_t task1; //第二核创建一个任务句柄
 
 RTC_DATA_ATTR int workingState;        //工作状态机
@@ -64,6 +69,7 @@ RTC_DATA_ATTR int keyState;            //按键状态机
 RTC_DATA_ATTR int oledState;           //OLED工作状态机
 RTC_DATA_ATTR int screenState;         //屏幕状态机
 RTC_DATA_ATTR bool screen_loopEnabled; //是否允许滚屏
+RTC_DATA_ATTR int current_rec_State;   //当前记录状态机 (正在开始记录,正在持续记录,正在停止记录)
 time_t loopStartTime;                  //计算主屏幕滚屏的起始时间
 time_t loopnowTime;                    //计算主屏幕滚屏的当前时间
 time_t looptimeSpan;                   //计算滚屏间隔时间
@@ -90,12 +96,12 @@ time_t now_rec_stamp;                  //计算现在记录时间
 #define FACTORY_TIME_HOUR 0            //出厂默认时间
 #define FACTORY_TIME_MIN 0             //出厂默认时间
 
-const char *mqtt_server = "183.230.40.96"; //onenet 的 IP地址
+const char *mqtt_server = "218.201.45.7"; //onenet 的 IP地址
 const int port = 1883;                     //端口号
-#define mqtt_devid "esp_device001"         //设备ID
-#define mqtt_pubid "370098"                //产品ID
+#define mqtt_devid "al_kh00001_zx_0003"         //设备ID
+#define mqtt_pubid "4LwKzUwOpX"                //产品ID
 //鉴权信息
-#define mqtt_password "version=2018-10-31&res=products%2F370098%2Fdevices%2Fesp_device001&et=4092512761&method=md5&sign=MUV%2BKFLzv81a4Bw6BDrChQ%3D%3D"
+#define mqtt_password "version=2018-10-31&res=products%2F4LwKzUwOpX%2Fdevices%2Fal_kh00001_zx_0003&et=4092599349&method=md5&sign=RJjI9dBTNLUXL9rk9zbBtQ%3D%3D"
 
 /*-------------------------------公共变量,参数定义-------------------------------------*/
 //温湿度采集相关
@@ -135,6 +141,7 @@ RTC_DATA_ATTR bool alFFS_thisRec_firstData_flag; //本次记录第一次上传
 RTC_DATA_ATTR char nowREC_filepath[21];          //记录文件的路径
 /*-------------------------------系统时间定义-------------------------------------*/
 RTC_DATA_ATTR uint32_t now_unixtime;
+// RTC_DATA_ATTR int64_t now_unixtime64;
 time_t time_last_async_stamp;
 
 /*-------------------------------初始化相关init.ino-------------------------------------*/
@@ -162,8 +169,25 @@ void getLBSLocation();
 /*-------------------------------onenet_mqtts服务相关onenet_mqtts.ino---------------------*/
 
 /*-------------------------------云平台相关定义-------------------------------------*/
-char msgJson[256]; //要发送的json格式的数据
-char dataTemplate[] = "{\"id\":123,\"dp\":{\"temp\":[{\"v\":%.2f}],\"humi\":[{\"v\":%.2f}],\"location\":[{\"v\":{\"lon\":%.2f,\"lat\":%.2f}}]}}";
+//设备上传数据的post主题
+#define ONENET_TOPIC_PROP_POST "$sys/" mqtt_pubid "/" mqtt_devid "/thing/property/post"
+//接收下发属性设置主题
+#define ONENET_TOPIC_PROP_SET "$sys/" mqtt_pubid "/" mqtt_devid "/thing/property/set"
+//接收下发属性设置成功的回复主题
+#define ONENET_TOPIC_PROP_SET_REPLY "$sys/" mqtt_pubid "/" mqtt_devid "/thing/property/set_reply"
+
+//接收设备属性获取命令主题
+#define ONENET_TOPIC_PROP_GET "$sys/" mqtt_pubid "/" mqtt_devid "/thing/property/get"
+//接收设备属性获取命令成功的回复主题
+#define ONENET_TOPIC_PROP_GET_REPLY "$sys/" mqtt_pubid "/" mqtt_devid "/thing/property/get_reply"
+
+//这是post上传数据使用的模板
+#define ONENET_POST_BODY_FORMAT "{\"id\":\"1\",\"params\":%s}"
+
+
+
+// char msgJson[256]; //要发送的json格式的数据
+// char dataTemplate[] = "{\"id\":\"123\",\"params\":{\"temp\":{\"value\":%.2f},\"humi\":{\"value\":%.2f},\"le\":{\"value\":%.2f},\"ln\":{\"value\":%.2f}}}";
 void onenet_connect();
 void sendTempAndHumi();
 // void onenet_mqtts_connect();
